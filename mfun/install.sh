@@ -35,10 +35,10 @@ exit_install(){
 	local state=$1
 	case $state in
 		1)
-			echo_date "本插件适用于【koolshare 梅林改/官改 hnd/axhnd】固件平台！"
-			echo_date "你的固件平台不能安装！！!"
-			echo_date "本插件支持机型/平台：https://github.com/koolshare/rogsoft#rogsoft"
-			echo_date "退出安装！"
+			echo_date "本插件适用于【koolshare 梅林改/官改 hnd/axhnd】固件平台!"
+			echo_date "你的固件平台不能安装!!!"
+			echo_date "本插件支持机型/平台: https://github.com/koolshare/rogsoft#rogsoft"
+			echo_date "退出安装!"
 			rm -rf /tmp/${module}* >/dev/null 2>&1
 			exit 1
 			;;
@@ -49,9 +49,9 @@ exit_install(){
 	esac
 }
 
-# 判断路由架构和平台：koolshare固件，并且linux版本大于等于4.1
+# 判断路由架构和平台: koolshare固件, 并且linux版本大于等于4.1
 if [ -d "/koolshare" -a -f "/usr/bin/skipd" -a "${LINUX_VER}" -ge "41" ];then
-	echo_date 机型：${MODEL} $(_get_type) 符合安装要求，开始安装插件！
+	echo_date 机型: ${MODEL} $(_get_type) 符合安装要求, 开始安装插件!
 else
 	exit_install 1
 fi
@@ -62,12 +62,12 @@ if [ -n "$(nvram get extendno | grep koolshare)" -a "$(nvram get productid)" == 
 fi
 
 if [ "${MODEL}" == "GT-AC5300" -o "${MODEL}" == "GT-AX11000" -o "${MODEL}" == "GT-AX11000_BO4"  -o "$ROG_86U" == "1" ];then
-	# 官改固件，骚红皮肤
+	# 官改固件, 骚红皮肤
 	ROG=1
 fi
 
 if [ "${MODEL}" == "TUF-AX3000" ];then
-	# 官改固件，橙色皮肤
+	# 官改固件, 橙色皮肤
 	TUF=1
 fi
 
@@ -79,14 +79,14 @@ cp -rf /tmp/mfun/res/* /koolshare/res/
 cp -rf /tmp/mfun/uninstall.sh /koolshare/scripts/uninstall_mfun.sh
 
 if [ "$ROG" == "1" ];then
-	echo_date "安装ROG皮肤！"
+	echo_date "安装ROG皮肤!"
 	continue
 else
 	if [ "$TUF" == "1" ];then
-		echo_date "安装TUF皮肤！"
+		echo_date "安装TUF皮肤!"
 		sed -i 's/3e030d/3e2902/g;s/91071f/92650F/g;s/680516/D0982C/g;s/cf0a2c/c58813/g;s/700618/74500b/g;s/530412/92650F/g' /koolshare/webs/Module_${module}.asp >/dev/null 2>&1
 	else
-		echo_date "安装ASUSWRT皮肤！"
+		echo_date "安装ASUSWRT皮肤!"
 		sed -i '/rogcss/d' /koolshare/webs/Module_${module}.asp >/dev/null 2>&1
 	fi
 fi
@@ -103,5 +103,5 @@ dbus set softcenter_module_mfun_name="mfun"
 dbus set softcenter_module_mfun_title="MFUN"
 
 # 完成
-echo_date "MFUN插件安装完毕！"
+echo_date "MFUN插件安装完毕!"
 exit_install

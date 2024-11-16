@@ -125,13 +125,17 @@
                     E(params_chk[i]).checked = dbus[params_chk[i]] != "0";
                 }
             }
-            if (dbus["mfun_store"]){
-                E("mfun_feat_store").value  =   dbus["mfun_store"]
+            if (dbus["mfun_store"]) {
+                E("mfun_feat_store").value = dbus["mfun_store"]
             }
-            if (dbus["mfun_tmp"]){
-                E("mfun_feat_tmp").value    =   dbus["mfun_tmp"]
+            if (dbus["mfun_tmp"]) {
+                E("mfun_feat_tmp").value = dbus["mfun_tmp"]
             }
-            E("mfun_feat_watch").checked    =   dbus["mfun_watch"] == "1"
+            E("mfun_feat_watch").checked = dbus["mfun_watch"] == "1"
+            if (dbus["mfun_port"]) {
+                E("mfun_feat_port").value = dbus["mfun_port"]
+            }
+            E("mfun_feat_open").checked = dbus["mfun_open"] == "1"
         }
         function get_status() {
             var id = parseInt(Math.random() * 100000000);
@@ -162,9 +166,11 @@
             //for (var i = 0; i < params_inp.length; i++) {
             //	dbus_new[params_inp[i]] = E(params_inp[i]).value;
             //}
-            dbus_new["mfun_store"]  = E("mfun_feat_store").value
-            dbus_new["mfun_tmp"]    = E("mfun_feat_tmp").value
-            dbus_new["mfun_watch"]  = E("mfun_feat_watch").checked ? "1" : "0"
+            dbus_new["mfun_store"] = E("mfun_feat_store").value
+            dbus_new["mfun_tmp"] = E("mfun_feat_tmp").value
+            dbus_new["mfun_watch"] = E("mfun_feat_watch").checked ? "1" : "0"
+            dbus_new["mfun_port"] = E("mfun_feat_port").value
+            dbus_new["mfun_open"] = E("mfun_feat_open").checked ? "1" : "0"
             E("mfun_apply").disabled = true;
             var id = parseInt(Math.random() * 100000000);
             var postData = { "id": id, "method": "mfun_config.sh", "params": ["web_submit"], "fields": dbus_new };
@@ -181,7 +187,7 @@
         }
         function showWBLoadingBar() {
             document.scrollingElement.scrollTop = 0;
-            E("loading_block_title").innerHTML = "应用中，请稍后 ...";
+            E("loading_block_title").innerHTML = "应用中, 请稍后 ...";
             E("LoadingBar").style.visibility = "visible";
             var page_h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
             var page_w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -206,7 +212,7 @@
                 E("ok_button1").value = "手动关闭"
                 return false;
             }
-            E("ok_button1").value = "自动关闭（" + count_down + "）"
+            E("ok_button1").value = "自动关闭(" + count_down + ")"
             --count_down;
             setTimeout("count_down_close();", 1000);
         }
@@ -240,7 +246,7 @@
                 },
                 error: function (xhr) {
                     E("loading_block_title").innerHTML = "暂无日志信息 ...";
-                    E("log_content").value = "日志文件为空，请关闭本窗口！";
+                    E("log_content").value = "日志文件为空, 请关闭本窗口!";
                     E("ok_button").style.visibility = "visible";
                     return false;
                 }
@@ -250,8 +256,8 @@
             tabtitle[tabtitle.length - 1] = new Array("", "MFUN");
             tablink[tablink.length - 1] = new Array("", "Module_mfun.asp");
         }
-        function setMfunAddr(){
-            E("mfun_website").href = location.origin + ":8990";
+        function setMfunAddr() {
+            E("mfun_website").href = location.origin + ":" + E("mfun_feat_port").value;
         }
     </script>
 </head>
@@ -325,8 +331,8 @@
                                                         <div class="switch_field"
                                                             style="display:table-cell;float: left;">
                                                             <label for="mfun_enable">
-                                                                <input id="mfun_enable" class="switch"
-                                                                    type="checkbox" style="display: none;">
+                                                                <input id="mfun_enable" class="switch" type="checkbox"
+                                                                    style="display: none;">
                                                                 <div class="switch_container">
                                                                     <div class="switch_bar"></div>
                                                                     <div class="switch_circle transition_style">
@@ -349,33 +355,49 @@
                                                 <tr>
                                                     <th>配置路径<span style="color: red;"> * </span></th>
                                                     <td>
-                                                        <input style="width:300px;" type="text" class="input_ss_table" id="mfun_feat_store" name="mfun_feat_store" maxlength="100" value="" autocorrect="off" autocapitalize="off">
-                                                    </td>
-                                                </tr>
-                                                 <tr>
-                                                    <th>缓存路径<span style="color: red;"> * </span></th>
-                                                    <td>
-                                                        <input style="width:300px;" type="text" class="input_ss_table" id="mfun_feat_tmp" name="mfun_feat_tmp" maxlength="100" value="" autocorrect="off" autocapitalize="off">
+                                                        <input style="width:300px;" type="text" class="input_ss_table"
+                                                            id="mfun_feat_store" name="mfun_feat_store" maxlength="100"
+                                                            value="" autocorrect="off" autocapitalize="off">
                                                     </td>
                                                 </tr>
                                                 <tr>
-													<th>文件监控</th>
-													<td>
-														<input type="checkbox" id="mfun_feat_watch" style="vertical-align:middle;" checked="true">
-													</td>
-												</tr>
-                                                
+                                                    <th>缓存路径<span style="color: red;"> * </span></th>
+                                                    <td>
+                                                        <input style="width:300px;" type="text" class="input_ss_table"
+                                                            id="mfun_feat_tmp" name="mfun_feat_tmp" maxlength="100"
+                                                            value="" autocorrect="off" autocapitalize="off">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>文件监控</th>
+                                                    <td>
+                                                        <input type="checkbox" id="mfun_feat_watch"
+                                                            style="vertical-align:middle;" checked="true">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>面板http端口</th>
+                                                    <td>
+                                                        <input style="width:62px;" type="number" class="input_ss_table"
+                                                            id="mfun_feat_port" name="mfun_feat_port" maxlength="5"
+                                                            value="8990" autocorrect="off" autocapitalize="off">
+                                                        <input type="checkbox" id="mfun_feat_open"
+                                                            style="vertical-align:middle;" checked="true">
+                                                        <li style="color: #FC0;">开放公网端口</li>
+                                                    </td>
+                                                </tr>
                                                 <tr id="mfun_console">
                                                     <th>控制台</th>
                                                     <td>
-                                                        <a type="button" id="mfun_website" class="ks_btn" href="" target="_blank" style="border:none">控制台</a>
+                                                        <a type="button" id="mfun_website" class="ks_btn" href=""
+                                                            target="_blank" style="border:none">控制台</a>
                                                     </td>
                                                 </tr>
                                             </table>
                                         </div>
                                         <div class="apply_gen">
-                                            <input class="button_gen" id="mfun_apply" onClick="save()"
-                                                type="button" value="提交" />
+                                            <input class="button_gen" id="mfun_apply" onClick="save()" type="button"
+                                                value="提交" />
                                         </div>
                                     </td>
                                 </tr>
