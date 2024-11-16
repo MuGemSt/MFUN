@@ -1,6 +1,5 @@
 import os
 import json
-import codecs
 import hashlib
 import traceback
 import subprocess
@@ -26,10 +25,22 @@ def get_or_create():
         conf["description"] = "description of " + module_name
 
     else:
-        with codecs.open(conf_path, "r", "utf-8") as fc:
+        with open(conf_path, "r", encoding="utf-8") as fc:
             conf = json.loads(fc.read())
 
     return conf
+
+
+def pack_folder(module_name: str):
+    subprocess.run(["7z", "a", "-ttar", f"{module_name}.tar", module_name], check=True)
+    subprocess.run(
+        ["7z", "a", "-tgzip", f"{module_name}.tar.gz", f"{module_name}.tar"],
+        check=True,
+    )
+    if os.path.exists(f"{module_name}.tar"):
+        os.remove(f"{module_name}.tar")
+    else:
+        print(f"Failed to create {module_name}.tar")
 
 
 def build_module():
@@ -58,9 +69,7 @@ def build_module():
     open(parent_path + "/" + conf["module"] + "/" + "version", "w").write(
         conf["version"]
     )
-    subprocess.run(["7z", "a", "-ttar", "./mfun.tar", "./mfun"], check=True)
-    subprocess.run(["7z", "a", "-tgzip", "./mfun.tar.gz", "./mfun.tar"], check=True)
-    os.remove("./mfun.tar")
+    pack_folder(conf["module"])
     conf["md5"] = md5sum(os.path.join(parent_path, conf["module"] + ".tar.gz"))
     conf_path = os.path.join(parent_path, "config.json")
     with open(conf_path, "w", encoding="utf-8") as fw:
