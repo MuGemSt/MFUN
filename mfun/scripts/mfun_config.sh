@@ -49,6 +49,7 @@ start_mfun() {
 	if [ -n "$(pidof mfun)" ];then
 		echo_date "关闭当前MFUN进程..."
 		killall mfun >/dev/null 2>&1
+		iptables -D INPUT -p tcp --dport "$mfun_old_port" -j ACCEPT
 	fi
 
 	# 开启mfun
@@ -86,7 +87,7 @@ start_mfun() {
 			iptables -I INPUT -p tcp --dport "$mfun_port" -j ACCEPT
 			echo_date "已开放公网HTTP端口${mfun_port}!"
 		else
-			echo_date "仅开放本地HTTP端口${mfun_port} ..."
+			echo_date "仅可访问控制台HTTP端口${mfun_port} ..."
 		fi
 
 	else

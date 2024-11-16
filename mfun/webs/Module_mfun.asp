@@ -167,6 +167,7 @@
             dbus_new["mfun_store"] = E("mfun_feat_store").value
             dbus_new["mfun_tmp"] = E("mfun_feat_tmp").value
             dbus_new["mfun_watch"] = E("mfun_feat_watch").checked ? "1" : "0"
+            dbus_new["mfun_old_port"] = dbus["mfun_port"]
             dbus_new["mfun_port"] = E("mfun_feat_port").value
             dbus_new["mfun_open"] = E("mfun_feat_open").checked ? "1" : "0"
             E("mfun_apply").disabled = true;
