@@ -81,10 +81,12 @@ start_mfun() {
 		fun_wan_start
 
 		# 开放 http 端口用于内网穿透
+		iptables -D INPUT -p tcp --dport "$mfun_port" -j ACCEPT
 		if [ "${mfun_open}" == "1" ]; then
 			iptables -I INPUT -p tcp --dport "$mfun_port" -j ACCEPT
+			echo_date "已开放公网HTTP端口${mfun_port}!"
 		else
-			iptables -I INPUT -p tcp --dport "$mfun_port" -j DROP
+			echo_date "仅开放本地HTTP端口${mfun_port} ..."
 		fi
 
 	else
@@ -116,6 +118,9 @@ stop() {
 		echo_date "删除开机启动..."
    		rm -rf /koolshare/init.d/M71mfun.sh >/dev/null 2>&1
    	fi
+	
+	echo_date "关闭端口..."
+	iptables -D INPUT -p tcp --dport "$mfun_port" -j ACCEPT
 }
 
 case $1 in
