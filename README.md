@@ -1,8 +1,8 @@
-# MFUN
+# MFUN 轻量影视媒体库 (梅林固件版)
 [![license](https://img.shields.io/github/license/MuGemSt/MFUN.svg)](https://github.com/MuGemSt/MFUN/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/MuGemSt/MFUN.svg)](https://github.com/MuGemSt/MFUN/releases/latest)
 
-The MFUN plugin on Merlin, my version starts to support intranet tunneling:
+The MFUN plugin on Merlin, **my version supports intranet tunneling**:
 ![](https://foruda.gitee.com/images/1731769083409773152/56dd4c9e_14243051.png)
 
 ## Environment
