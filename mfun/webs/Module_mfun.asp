@@ -352,7 +352,7 @@
                                                     <td><span id="mfun_status"></span></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>配置路径<span style="color: red;"> * </span></th>
+                                                    <th>媒体路径<span style="color: red;"> * </span></th>
                                                     <td>
                                                         <input style="width:300px;" type="text" class="input_ss_table"
                                                             id="mfun_feat_store" name="mfun_feat_store" maxlength="100"
@@ -360,7 +360,7 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>缓存路径<span style="color: red;"> * </span></th>
+                                                    <th>配置及缓存路径<span style="color: red;"> * </span></th>
                                                     <td>
                                                         <input style="width:300px;" type="text" class="input_ss_table"
                                                             id="mfun_feat_tmp" name="mfun_feat_tmp" maxlength="100"
@@ -375,7 +375,7 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>面板http端口</th>
+                                                    <th>面板http端口<span style="color: red;"> * </span></th>
                                                     <td>
                                                         <input style="width:62px;" type="number" class="input_ss_table"
                                                             id="mfun_feat_port" name="mfun_feat_port" value="8990"

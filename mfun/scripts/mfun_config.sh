@@ -10,10 +10,12 @@ set_lock() {
 	exec 1000>"$LOCK_FILE"
 	flock -x 1000
 }
+
 unset_lock() {
 	flock -u 1000
 	rm -rf "$LOCK_FILE"
 }
+
 sync_ntp() {
 	# START_TIME=$(date +%Y/%m/%d-%X)
 	echo_date "尝试从ntp服务器: ntp1.aliyun.com 同步时间..."
@@ -26,6 +28,7 @@ sync_ntp() {
 		echo_date "时间同步失败, 跳过!"
 	fi
 }
+
 fun_wan_start() {
 	if [ "${mfun_enable}" == "1" ]; then
 		if [ ! -L "/koolshare/init.d/M71mfun.sh" ]; then
@@ -39,6 +42,30 @@ fun_wan_start() {
 		fi
 	fi
 }
+
+fix_path() {
+	for dir in /mnt/*/; do
+		if [ -d "$dir" ]; then
+			sub=$(echo "$1" | cut -d'/' -f4-)
+			if [ -d "$dir$sub" ]; then
+				echo "$dir$sub"
+			fi
+		fi
+	done
+}
+
+fix_store_path() {
+	fixed_tempath=$1
+	old_store_path=$2
+	fixed_store_path=$(fix_path $old_store_path)
+	if [ "$old_store_path" != "$fixed_store_path" ]; then
+		db_dir="$fixed_tempath/db"
+		sqlite3 "$db_dir/products.db" "UPDATE m_product SET path = replace(path, '$old_store_path', '$fixed_store_path') WHERE path LIKE '%$old_store_path%';"
+		sqlite3 "$db_dir/db.db" "UPDATE m_media SET path = replace(path, '$old_store_path', '$fixed_store_path') WHERE path LIKE '%$old_store_path%';"
+		sqlite3 "$db_dir/db.db" "UPDATE m_music_list_data SET path = replace(path, '$old_store_path', '$fixed_store_path') WHERE path LIKE '%$old_store_path%';"]
+	fi
+}
+
 start_mfun() {
 	# 插件开启的时候同步一次时间
 	if [ "${mfun_enable}" == "1" -a -n "$(which ntpclient)" ]; then
@@ -52,15 +79,19 @@ start_mfun() {
 		iptables -D INPUT -p tcp --dport "$mfun_old_port" -j ACCEPT
 	fi
 
+	# 修复路由器重启导致的盘符变更
+	fixed_mfun_tmp=$(fix_path $mfun_tmp)
+	fix_store_path $fixed_mfun_tmp $mfun_store
+
 	# 开启mfun
 	if [ "$mfun_enable" == "1" ]; then
 		echo_date "启动MFUN主程序..."
 		export GOGC=40
 		cd /koolshare/bin
 		if [ "${mfun_watch}" == "1" ]; then
-			./mfun --store="$mfun_store" --tmp="$mfun_tmp" --port="$mfun_port" --watch >/dev/null 2>&1 &
+			./mfun --store="$fixed_mfun_tmp" --tmp="$fixed_mfun_tmp" --port="$mfun_port" --watch >/dev/null 2>&1 &
 		else
-			./mfun --store="$mfun_store" --tmp="$mfun_tmp" --port="$mfun_port" >/dev/null 2>&1 &
+			./mfun --store="$fixed_mfun_tmp" --tmp="$fixed_mfun_tmp" --port="$mfun_port" >/dev/null 2>&1 &
 		fi
 		#start-stop-daemon -S -q -b -m -p /tmp/var/sign.pid -x mfun
 		sleep 1
@@ -95,6 +126,7 @@ start_mfun() {
 	fi
 	echo_date "MFUN插件启动完毕, 本窗口将在5s内自动关闭!"
 }
+
 close_in_five() {
 	echo_date "插件将在5秒后自动关闭!!"
 	local i=5
@@ -108,6 +140,7 @@ close_in_five() {
 	unset_lock
 	exit
 }
+
 stop() {
 	# 关闭mfun进程
 	if [ -n "$(pidof mfun)" ]; then
