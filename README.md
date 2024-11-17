@@ -20,7 +20,7 @@ The following issue is generally caused by CRLFs:
 
 ### Git cfg solution
 ```bash
-git config --global core.safecrlf input
+git config --global core.safecrlf false
 ```
 
 ## Build on Windows
