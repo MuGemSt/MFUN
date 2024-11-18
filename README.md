@@ -1,4 +1,4 @@
-# MFUN 轻量影视媒体库 (梅林固件版)
+# MFUN 轻量影视媒体库 (梅林固件优化版)
 [![license](https://img.shields.io/github/license/MuGemSt/MFUN.svg)](https://github.com/MuGemSt/MFUN/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/MuGemSt/MFUN.svg)](https://github.com/MuGemSt/MFUN/releases/latest)
 
