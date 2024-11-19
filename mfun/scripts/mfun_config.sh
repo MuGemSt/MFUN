@@ -64,6 +64,7 @@ fix_store_path() {
 		sqlite3 "$db_dir/db.db" "UPDATE m_media SET path = replace(path, '$old_store_path', '$fixed_store_path') WHERE path LIKE '%$old_store_path%';"
 		sqlite3 "$db_dir/db.db" "UPDATE m_music_list_data SET path = replace(path, '$old_store_path', '$fixed_store_path') WHERE path LIKE '%$old_store_path%';"]
 	fi
+	echo "$fixed_store_path"
 }
 
 start_mfun() {
@@ -81,7 +82,13 @@ start_mfun() {
 
 	# 修复路由器重启导致的盘符变更
 	fixed_mfun_tmp=$(fix_path $mfun_tmp)
-	fix_store_path $fixed_mfun_tmp $mfun_store
+	fixed_store_path=$(fix_store_path $fixed_mfun_tmp $mfun_store)
+	if [ "$mfun_tmp" != "$fixed_mfun_tmp" ]; then
+		dbus set mfun_tmp="$fixed_mfun_tmp"
+	fi
+	if [ "$mfun_store" != "$fixed_store_path" ]; then
+		dbus set mfun_store="$fixed_store_path"
+	fi
 
 	# 开启mfun
 	if [ "$mfun_enable" == "1" ]; then
