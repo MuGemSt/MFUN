@@ -67,6 +67,17 @@ fix_store_path() {
 }
 
 start_mfun() {
+	# 检查入参
+	if [ -z $mfun_store ] || [ ! -d $mfun_store ]; then
+		close_in_five "请输入有效媒体库路径!"
+	fi
+	if [[ -z $mfun_tmp ]]; then
+		close_in_five "请输入有效配置缓存路径!"
+	fi
+	if [[ -z $mfun_port ]]; then
+		close_in_five "请输入有效端口号!"
+	fi
+
 	# 插件开启的时候同步一次时间
 	if [ "${mfun_enable}" == "1" -a -n "$(which ntpclient)" ]; then
 		sync_ntp
@@ -77,16 +88,6 @@ start_mfun() {
 		echo_date "关闭当前 MFUN 进程..."
 		killall mfun >/dev/null 2>&1
 		iptables -D INPUT -p tcp --dport "$mfun_old_port" -j ACCEPT
-	fi
-
-	# 修复路由器重启导致的盘符变更
-	fixed_mfun_tmp=$(fix_path $mfun_tmp)
-	fixed_store_path=$(fix_store_path $fixed_mfun_tmp $mfun_store)
-	if [ "$mfun_tmp" != "$fixed_mfun_tmp" ]; then
-		dbus set mfun_tmp="$fixed_mfun_tmp"
-	fi
-	if [ "$mfun_store" != "$fixed_store_path" ]; then
-		dbus set mfun_store="$fixed_store_path"
 	fi
 
 	# 开启mfun
@@ -107,15 +108,13 @@ start_mfun() {
 			SDPID=$(pidof mfun)
 			if [ "$i" -lt 1 ]; then
 				echo_date "MFUN 进程启动失败!"
-				echo_date "可能是内存不足造成的, 建议使用虚拟内存后重试!"
-				close_in_five
+				close_in_five "可能是内存不足造成的, 建议使用虚拟内存后重试!"
 			else
 				echo_date "正在等待 MFUN 主程序启动 ..."
 			fi
 			usleep 500000
 		done
-		echo_date "MFUN启动成功, pid: ${SDPID}"
-		fun_wan_start
+		echo_date "MFUN 启动成功, pid: ${SDPID}"
 
 		# 开放 http 端口用于内网穿透
 		iptables -D INPUT -p tcp --dport "$mfun_port" -j ACCEPT
@@ -133,6 +132,7 @@ start_mfun() {
 }
 
 close_in_five() {
+	echo_date $1
 	echo_date "插件将在5秒后自动关闭!!"
 	local i=5
 	while [ $i -ge 0 ]; do
@@ -147,9 +147,9 @@ close_in_five() {
 }
 
 stop() {
-	# 关闭mfun进程
+	# 关闭 mfun 进程
 	if [ -n "$(pidof mfun)" ]; then
-		echo_date "停止MFUN主进程, pid: $(pidof mfun)"
+		echo_date "停止 MFUN 主进程, pid: $(pidof mfun)"
 		killall mfun >/dev/null 2>&1
 	fi
 
@@ -160,6 +160,7 @@ stop() {
 
 	echo_date "关闭端口..."
 	iptables -D INPUT -p tcp --dport "$mfun_port" -j ACCEPT
+	fun_wan_start
 }
 
 case $1 in
@@ -203,6 +204,39 @@ web_submit)
 	;;
 esac
 
+# 重启自启变量初始化
+if [[ -z $mfun_enable ]]; then
+	mfun_enable=$(dbus get mfun_enable)
+fi
+
 if [ "$mfun_enable" == "1" ]; then
+	if [[ -z $mfun_store ]]; then
+		mfun_store=$(dbus get mfun_store)
+	fi
+	if [[ -z $mfun_tmp ]]; then
+		mfun_tmp=$(dbus get mfun_tmp)
+	fi
+	if [[ -z $mfun_watch ]]; then
+		mfun_watch=$(dbus get mfun_watch)
+	fi
+	if [[ -z $mfun_port ]]; then
+		mfun_port=$(dbus get mfun_port)
+	fi
+	if [[ -z $mfun_open ]]; then
+		mfun_open=$(dbus get mfun_open)
+	fi
+
+	# 修复路由器重启导致的盘符变更
+	fixed_mfun_tmp=$(fix_path $mfun_tmp)
+	fixed_store_path=$(fix_store_path $fixed_mfun_tmp $mfun_store)
+	if [ "$mfun_tmp" != "$fixed_mfun_tmp" ] && [ ! -z $fixed_mfun_tmp ]; then
+		dbus set mfun_tmp="$fixed_mfun_tmp"
+	fi
+	if [ "$mfun_store" != "$fixed_store_path" ] && [ ! -z $fixed_store_path ]; then
+		dbus set mfun_store="$fixed_store_path"
+	fi
+
+	# 开启 MFUN
 	start_mfun
+	echo XU6J03M6 | tee -a $LOG_FILE
 fi

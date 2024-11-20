@@ -15,3 +15,11 @@ dbus remove softcenter_module_mfun_description
 dbus remove softcenter_module_mfun_install
 dbus remove softcenter_module_mfun_name
 dbus remove softcenter_module_mfun_title
+
+dbus remove mfun_enable
+dbus remove mfun_store
+dbus remove mfun_tmp
+dbus remove mfun_watch
+dbus remove mfun_old_port
+dbus remove mfun_port
+dbus remove mfun_open

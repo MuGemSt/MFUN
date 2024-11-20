@@ -380,7 +380,7 @@
                                                     <th>文件监控</th>
                                                     <td>
                                                         <input type="checkbox" id="mfun_feat_watch"
-                                                            style="vertical-align:middle;" checked="true">
+                                                            style="vertical-align:middle;" checked="false">
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -392,9 +392,9 @@
                                                         <input type="checkbox" id="mfun_feat_open"
                                                             style="vertical-align:middle;" checked="true">
                                                         <span style="color: #FC0;">开放公网端口</span>
-                                                        <input type="checkbox" id="mfun_feat_ssl"
+                                                        <!-- <input type="checkbox" id="mfun_feat_ssl"
                                                             style="vertical-align:middle;" checked="true">
-                                                        <span style="color: #FC0;">启用 HTTPS</span>
+                                                        <span style="color: #FC0;">启用 HTTPS</span> -->
                                                     </td>
                                                 </tr>
                                                 <tr id="mfun_console">
