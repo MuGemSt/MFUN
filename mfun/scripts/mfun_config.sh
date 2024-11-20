@@ -17,8 +17,7 @@ unset_lock() {
 }
 
 sync_ntp() {
-	# START_TIME=$(date +%Y/%m/%d-%X)
-	echo_date "尝试从ntp服务器: ntp1.aliyun.com 同步时间..."
+	echo_date "尝试从 ntp 服务器: ntp1.aliyun.com 同步时间..."
 	ntpclient -h ntp1.aliyun.com -i3 -l -s >/tmp/ali_ntp.txt 2>&1
 	SYNC_TIME=$(cat /tmp/ali_ntp.txt | grep -E "\[ntpclient\]" | grep -Eo "[0-9]+" | head -n1)
 	if [ -n "${SYNC_TIME}" ]; then
@@ -75,7 +74,7 @@ start_mfun() {
 
 	# 关闭mfun进程
 	if [ -n "$(pidof mfun)" ]; then
-		echo_date "关闭当前MFUN进程..."
+		echo_date "关闭当前 MFUN 进程..."
 		killall mfun >/dev/null 2>&1
 		iptables -D INPUT -p tcp --dport "$mfun_old_port" -j ACCEPT
 	fi
@@ -92,7 +91,7 @@ start_mfun() {
 
 	# 开启mfun
 	if [ "$mfun_enable" == "1" ]; then
-		echo_date "启动MFUN主程序..."
+		echo_date "启动 MFUN 主程序..."
 		export GOGC=40
 		cd /koolshare/bin
 		if [ "${mfun_watch}" == "1" ]; then
@@ -100,7 +99,6 @@ start_mfun() {
 		else
 			./mfun --store="$fixed_mfun_tmp" --tmp="$fixed_mfun_tmp" --port="$mfun_port" >/dev/null 2>&1 &
 		fi
-		#start-stop-daemon -S -q -b -m -p /tmp/var/sign.pid -x mfun
 		sleep 1
 		local SDPID
 		local i=10
@@ -108,11 +106,11 @@ start_mfun() {
 			i=$(($i - 1))
 			SDPID=$(pidof mfun)
 			if [ "$i" -lt 1 ]; then
-				echo_date "MFUN进程启动失败!"
+				echo_date "MFUN 进程启动失败!"
 				echo_date "可能是内存不足造成的, 建议使用虚拟内存后重试!"
 				close_in_five
 			else
-				echo_date "正在等待MFUN主程序启动 ..."
+				echo_date "正在等待 MFUN 主程序启动 ..."
 			fi
 			usleep 500000
 		done
@@ -123,15 +121,15 @@ start_mfun() {
 		iptables -D INPUT -p tcp --dport "$mfun_port" -j ACCEPT
 		if [ "${mfun_open}" == "1" ]; then
 			iptables -I INPUT -p tcp --dport "$mfun_port" -j ACCEPT
-			echo_date "已开放公网HTTP端口${mfun_port}!"
+			echo_date "已开放公网 HTTP 端口 ${mfun_port} !"
 		else
-			echo_date "仅可访问控制台HTTP端口${mfun_port} ..."
+			echo_date "仅可访问控制台 HTTP 端口 ${mfun_port} ..."
 		fi
 
 	else
 		stop
 	fi
-	echo_date "MFUN插件启动完毕, 本窗口将在5s内自动关闭!"
+	echo_date "MFUN 插件启动完毕, 本窗口将在 5s 内自动关闭!"
 }
 
 close_in_five() {
@@ -168,7 +166,7 @@ case $1 in
 start)
 	set_lock
 	if [ "${mfun_enable}" == "1" ]; then
-		logger "[软件中心]: 启动MFUN!"
+		logger "[软件中心]: 启动 MFUN !"
 		start_mfun
 	fi
 	unset_lock
@@ -198,7 +196,7 @@ web_submit)
 		start_mfun | tee -a $LOG_FILE
 	else
 		stop | tee -a $LOG_FILE
-		echo_date "MFUN已经停止运行, 本窗口将再5s后关闭!" | tee -a $LOG_FILE
+		echo_date "MFUN 已经停止运行, 本窗口将再 5s 后关闭!" | tee -a $LOG_FILE
 	fi
 	echo XU6J03M6 | tee -a $LOG_FILE
 	unset_lock

@@ -79,6 +79,7 @@
         var params_inp = [];
         var refresh_flag;
         var count_down;
+
         function init() {
             show_menu(menu_hook);
             get_status();
@@ -86,6 +87,7 @@
             register_event();
             setMfunAddr();
         }
+
         function register_event() {
             $(".popup_bar_bg_ks").click(
                 function () {
@@ -104,6 +106,7 @@
                 }
             });
         }
+
         function get_dbus_data() {
             $.ajax({
                 type: "GET",
@@ -117,6 +120,7 @@
                 }
             });
         }
+
         function conf2obj() {
             for (var i = 0; i < params_chk.length; i++) {
                 if (dbus[params_chk[i]]) {
@@ -135,6 +139,7 @@
             }
             E("mfun_feat_open").checked = dbus["mfun_open"] == "1"
         }
+
         function get_status() {
             var id = parseInt(Math.random() * 100000000);
             var postData = { "id": id, "method": "mfun_status.sh", "params": [1], "fields": "" };
@@ -156,14 +161,12 @@
                 }
             });
         }
+
         function save() {
             var dbus_new = {};
             for (var i = 0; i < params_chk.length; i++) {
                 dbus_new[params_chk[i]] = E(params_chk[i]).checked ? '1' : '0';
             }
-            //for (var i = 0; i < params_inp.length; i++) {
-            //	dbus_new[params_inp[i]] = E(params_inp[i]).value;
-            //}
             dbus_new["mfun_store"] = E("mfun_feat_store").value
             dbus_new["mfun_tmp"] = E("mfun_feat_tmp").value
             dbus_new["mfun_watch"] = E("mfun_feat_watch").checked ? "1" : "0"
@@ -184,6 +187,7 @@
                 }
             });
         }
+
         function showWBLoadingBar() {
             document.scrollingElement.scrollTop = 0;
             E("loading_block_title").innerHTML = "应用中, 请稍后 ...";
@@ -196,6 +200,7 @@
             var log_w_offset = (page_w - log_w) / 2 + 90;
             $('#loadingBarBlock').offset({ top: log_h_offset, left: log_w_offset });
         }
+
         function hideWBLoadingBar() {
             E("LoadingBar").style.visibility = "hidden";
             E("ok_button").style.visibility = "hidden";
@@ -203,6 +208,7 @@
                 refreshpage();
             }
         }
+
         function count_down_close() {
             if (count_down == "0") {
                 hideWBLoadingBar();
@@ -215,6 +221,7 @@
             --count_down;
             setTimeout("count_down_close();", 1000);
         }
+
         function get_log(flag) {
             E("ok_button").style.visibility = "hidden";
             showWBLoadingBar();
@@ -251,10 +258,12 @@
                 }
             });
         }
+
         function menu_hook(title, tab) {
             tabtitle[tabtitle.length - 1] = new Array("", "MFUN");
             tablink[tablink.length - 1] = new Array("", "Module_mfun.asp");
         }
+
         function setMfunAddr() {
             E("mfun_website").href = location.origin + ":" + E("mfun_feat_port").value;
         }
@@ -321,7 +330,7 @@
                                                 cellspacing="0" class="FormTable">
                                                 <thead>
                                                     <tr>
-                                                        <td colspan="2">MFUN设定</td>
+                                                        <td colspan="2">MFUN 设定</td>
                                                     </tr>
                                                 </thead>
                                                 <tr id="switch_tr">
@@ -375,7 +384,7 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>面板http端口<span style="color: red;"> * </span></th>
+                                                    <th>面板 HTTP 端口<span style="color: red;"> * </span></th>
                                                     <td>
                                                         <input style="width:62px;" type="number" class="input_ss_table"
                                                             id="mfun_feat_port" name="mfun_feat_port" value="8990"
@@ -383,6 +392,9 @@
                                                         <input type="checkbox" id="mfun_feat_open"
                                                             style="vertical-align:middle;" checked="true">
                                                         <span style="color: #FC0;">开放公网端口</span>
+                                                        <input type="checkbox" id="mfun_feat_ssl"
+                                                            style="vertical-align:middle;" checked="true">
+                                                        <span style="color: #FC0;">启用 HTTPS</span>
                                                     </td>
                                                 </tr>
                                                 <tr id="mfun_console">
