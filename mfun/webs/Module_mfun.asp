@@ -127,9 +127,9 @@
                     E(params_chk[i]).checked = dbus[params_chk[i]] != "0";
                 }
             }
-            if (dbus["mfun_store"]) {
+            /*if (dbus["mfun_store"]) {
                 E("mfun_feat_store").value = dbus["mfun_store"]
-            }
+            }*/
             if (dbus["mfun_tmp"]) {
                 E("mfun_feat_tmp").value = dbus["mfun_tmp"]
             }
@@ -167,7 +167,7 @@
             for (var i = 0; i < params_chk.length; i++) {
                 dbus_new[params_chk[i]] = E(params_chk[i]).checked ? '1' : '0';
             }
-            dbus_new["mfun_store"] = E("mfun_feat_store").value
+            // dbus_new["mfun_store"] = E("mfun_feat_store").value
             dbus_new["mfun_tmp"] = E("mfun_feat_tmp").value
             dbus_new["mfun_watch"] = E("mfun_feat_watch").checked ? "1" : "0"
             dbus_new["mfun_old_port"] = dbus["mfun_port"]
@@ -360,14 +360,15 @@
                                                     <th>运行状态</th>
                                                     <td><span id="mfun_status"></span></td>
                                                 </tr>
-                                                <tr>
-                                                    <th>媒体路径<span style="color: red;"> * </span></th>
+                                                <!-- <tr>
+                                                    <th>媒体路径(请确保资源全部储存在此目录或其子目录下)<span style="color: red;"> * </span>
+                                                    </th>
                                                     <td>
                                                         <input style="width:300px;" type="text" class="input_ss_table"
                                                             id="mfun_feat_store" name="mfun_feat_store" maxlength="100"
                                                             value="" autocorrect="off" autocapitalize="off">
                                                     </td>
-                                                </tr>
+                                                </tr> -->
                                                 <tr>
                                                     <th>配置及缓存路径<span style="color: red;"> * </span></th>
                                                     <td>
@@ -380,7 +381,7 @@
                                                     <th>文件监控</th>
                                                     <td>
                                                         <input type="checkbox" id="mfun_feat_watch"
-                                                            style="vertical-align:middle;" checked="false">
+                                                            style="vertical-align:middle;">
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -390,7 +391,7 @@
                                                             id="mfun_feat_port" name="mfun_feat_port" value="8990"
                                                             min="1" max="65535">
                                                         <input type="checkbox" id="mfun_feat_open"
-                                                            style="vertical-align:middle;" checked="true">
+                                                            style="vertical-align:middle;" checked>
                                                         <span style="color: #FC0;">开放公网端口</span>
                                                         <!-- <input type="checkbox" id="mfun_feat_ssl"
                                                             style="vertical-align:middle;" checked="true">

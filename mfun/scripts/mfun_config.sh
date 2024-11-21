@@ -40,42 +40,79 @@ fun_wan_start() {
 			rm -rf /koolshare/init.d/M71mfun.sh >/dev/null 2>&1
 		fi
 	fi
+
+	if [ ! -z $old_mfun_port ] && [ $old_mfun_port != $mfun_port ]; then
+		iptables -D INPUT -p tcp --dport "$old_mfun_port" -j ACCEPT
+	fi
 }
 
 fix_path() {
 	for dir in /mnt/*/; do
 		if [ -d "$dir" ]; then
 			sub=$(echo "$1" | cut -d'/' -f4-)
-			if [ -d "$dir$sub" ]; then
+			if [ ! -z $sub ] && [ -d "$dir$sub" ]; then
 				echo "$dir$sub"
 			fi
 		fi
 	done
 }
 
-fix_store_path() {
-	fixed_tempath=$1
-	old_store_path=$2
-	fixed_store_path=$(fix_path $old_store_path)
-	if [ "$old_store_path" != "$fixed_store_path" ]; then
-		db_dir="$fixed_tempath/db"
-		sqlite3 "$db_dir/products.db" "UPDATE m_product SET path = replace(path, '$old_store_path', '$fixed_store_path') WHERE path LIKE '%$old_store_path%';"
-		sqlite3 "$db_dir/db.db" "UPDATE m_media SET path = replace(path, '$old_store_path', '$fixed_store_path') WHERE path LIKE '%$old_store_path%';"
-		sqlite3 "$db_dir/db.db" "UPDATE m_music_list_data SET path = replace(path, '$old_store_path', '$fixed_store_path') WHERE path LIKE '%$old_store_path%';"]
+fix_db_path() {
+	fixed_tempath=$(fix_path $1)
+	db_dir="$fixed_tempath/db"
+	if [ -d $fixed_tempath ] && [ -d $db_dir ]; then
+		prodb=$db_dir/products.db
+		dbpath=$db_dir/db.db
+		if [ -f $prodb ] && [ -f $dbpath ]; then
+			products=$(sqlite3 $prodb "SELECT path FROM m_product WHERE path LIKE '/mnt/%';")
+			echo "$products" | while IFS= read -r line; do
+				fixed_path=$(fix_path $line)
+				if [ $fixed_path != $line ] && [ ! -z $fixed_path ]; then
+					sqlite3 $prodb "UPDATE m_product SET path='$fixed_path' WHERE path='$line';"
+				fi
+			done
+
+			videos=$(sqlite3 $dbpath "SELECT path FROM m_media WHERE path LIKE '/mnt/%';")
+			echo "$videos" | while IFS= read -r line; do
+				fixed_path=$(fix_path $line)
+				if [ $fixed_path != $line ] && [ ! -z $fixed_path ]; then
+					sqlite3 $dbpath "UPDATE m_media SET path='$fixed_path' WHERE path='$line';"
+				fi
+			done
+
+			songs=$(sqlite3 $dbpath "SELECT path m_music_list_data WHERE path LIKE '/mnt/%';")
+			echo "$songs" | while IFS= read -r line; do
+				fixed_path=$(fix_path $line)
+				if [ $fixed_path != $line ] && [ ! -z $fixed_path ]; then
+					sqlite3 $dbpath "UPDATE m_music_list_data SET path='$fixed_path' WHERE path='$line';"
+				fi
+			done
+		fi
 	fi
-	echo "$fixed_store_path"
+
+	echo $fixed_tempath
 }
 
 start_mfun() {
 	# 检查入参
-	if [ -z $mfun_store ] || [ ! -d $mfun_store ]; then
-		close_in_five "请输入有效媒体库路径!"
+	if [[ -z $mfun_port ]]; then
+		close_in_five "请输入有效端口号!"
 	fi
 	if [[ -z $mfun_tmp ]]; then
 		close_in_five "请输入有效配置缓存路径!"
 	fi
-	if [[ -z $mfun_port ]]; then
-		close_in_five "请输入有效端口号!"
+
+	if [ ! -d $mfun_tmp ]; then
+		# 自动修复盘符
+		echo_date "检查媒体库..."
+		fixed_mfun_tmp=$(fix_db_path $mfun_tmp)
+		if [ "$mfun_tmp" != "$fixed_mfun_tmp" ] && [ -d $fixed_mfun_tmp ]; then
+			dbus set mfun_tmp="$fixed_mfun_tmp"
+			mfun_tmp=$fixed_mfun_tmp
+			echo_date "配置缓存路径已自动修复!"
+		else
+			close_in_five "请输入有效配置缓存路径!"
+		fi
 	fi
 
 	# 插件开启的时候同步一次时间
@@ -83,56 +120,45 @@ start_mfun() {
 		sync_ntp
 	fi
 
-	# 关闭mfun进程
-	if [ -n "$(pidof mfun)" ]; then
-		echo_date "关闭当前 MFUN 进程..."
-		killall mfun >/dev/null 2>&1
-		iptables -D INPUT -p tcp --dport "$mfun_old_port" -j ACCEPT
-	fi
-
-	# 开启mfun
-	if [ "$mfun_enable" == "1" ]; then
-		echo_date "启动 MFUN 主程序..."
-		export GOGC=40
-		cd /koolshare/bin
-		if [ "${mfun_watch}" == "1" ]; then
-			./mfun --store="$fixed_mfun_tmp" --tmp="$fixed_mfun_tmp" --port="$mfun_port" --watch >/dev/null 2>&1 &
-		else
-			./mfun --store="$fixed_mfun_tmp" --tmp="$fixed_mfun_tmp" --port="$mfun_port" >/dev/null 2>&1 &
-		fi
-		sleep 1
-		local SDPID
-		local i=10
-		until [ -n "$SDPID" ]; do
-			i=$(($i - 1))
-			SDPID=$(pidof mfun)
-			if [ "$i" -lt 1 ]; then
-				echo_date "MFUN 进程启动失败!"
-				close_in_five "可能是内存不足造成的, 建议使用虚拟内存后重试!"
-			else
-				echo_date "正在等待 MFUN 主程序启动 ..."
-			fi
-			usleep 500000
-		done
-		echo_date "MFUN 启动成功, pid: ${SDPID}"
-
-		# 开放 http 端口用于内网穿透
-		iptables -D INPUT -p tcp --dport "$mfun_port" -j ACCEPT
-		if [ "${mfun_open}" == "1" ]; then
-			iptables -I INPUT -p tcp --dport "$mfun_port" -j ACCEPT
-			echo_date "已开放公网 HTTP 端口 ${mfun_port} !"
-		else
-			echo_date "仅可访问控制台 HTTP 端口 ${mfun_port} ..."
-		fi
-
+	echo_date "启动 MFUN 主程序..."
+	export GOGC=40
+	cd /koolshare/bin
+	if [ "${mfun_watch}" == "1" ]; then
+		./mfun --store="$mfun_tmp" --tmp="$mfun_tmp" --port="$mfun_port" --watch >/dev/null 2>&1 &
 	else
-		stop
+		./mfun --store="$mfun_tmp" --tmp="$mfun_tmp" --port="$mfun_port" >/dev/null 2>&1 &
 	fi
+	sleep 1
+	local SDPID
+	local i=10
+	until [ -n "$SDPID" ]; do
+		i=$(($i - 1))
+		SDPID=$(pidof mfun)
+		if [ "$i" -lt 1 ]; then
+			echo_date "MFUN 进程启动失败!"
+			close_in_five "可能是内存不足造成的, 建议使用虚拟内存后重试!"
+		else
+			echo_date "正在等待 MFUN 主程序启动 ..."
+		fi
+		usleep 500000
+	done
+	echo_date "MFUN 启动成功, pid: ${SDPID}"
+
+	# 开放 http 端口用于内网穿透
+	iptables -D INPUT -p tcp --dport "$mfun_port" -j ACCEPT
+	if [ "${mfun_open}" == "1" ]; then
+		iptables -I INPUT -p tcp --dport "$mfun_port" -j ACCEPT
+		echo_date "已开放公网 HTTP 端口 ${mfun_port} !"
+	else
+		echo_date "仅可访问控制台 HTTP 端口 ${mfun_port} ..."
+	fi
+
 	echo_date "MFUN 插件启动完毕, 本窗口将在 5s 内自动关闭!"
 }
 
 close_in_five() {
 	echo_date $1
+	dbus set mfun_enable=0
 	echo_date "插件将在5秒后自动关闭!!"
 	local i=5
 	while [ $i -ge 0 ]; do
@@ -151,15 +177,10 @@ stop() {
 	if [ -n "$(pidof mfun)" ]; then
 		echo_date "停止 MFUN 主进程, pid: $(pidof mfun)"
 		killall mfun >/dev/null 2>&1
+		echo_date "关闭端口..."
+		iptables -D INPUT -p tcp --dport "$mfun_port" -j ACCEPT
 	fi
 
-	if [ -L "/koolshare/init.d/M71mfun.sh" ]; then
-		echo_date "删除开机启动..."
-		rm -rf /koolshare/init.d/M71mfun.sh >/dev/null 2>&1
-	fi
-
-	echo_date "关闭端口..."
-	iptables -D INPUT -p tcp --dport "$mfun_port" -j ACCEPT
 	fun_wan_start
 }
 
@@ -204,39 +225,14 @@ web_submit)
 	;;
 esac
 
-# 重启自启变量初始化
-if [[ -z $mfun_enable ]]; then
-	mfun_enable=$(dbus get mfun_enable)
-fi
-
-if [ "$mfun_enable" == "1" ]; then
-	if [[ -z $mfun_store ]]; then
-		mfun_store=$(dbus get mfun_store)
-	fi
-	if [[ -z $mfun_tmp ]]; then
-		mfun_tmp=$(dbus get mfun_tmp)
-	fi
-	if [[ -z $mfun_watch ]]; then
-		mfun_watch=$(dbus get mfun_watch)
-	fi
-	if [[ -z $mfun_port ]]; then
-		mfun_port=$(dbus get mfun_port)
-	fi
-	if [[ -z $mfun_open ]]; then
-		mfun_open=$(dbus get mfun_open)
-	fi
-
-	# 修复路由器重启导致的盘符变更
-	fixed_mfun_tmp=$(fix_path $mfun_tmp)
-	fixed_store_path=$(fix_store_path $fixed_mfun_tmp $mfun_store)
-	if [ "$mfun_tmp" != "$fixed_mfun_tmp" ] && [ ! -z $fixed_mfun_tmp ]; then
-		dbus set mfun_tmp="$fixed_mfun_tmp"
-	fi
-	if [ "$mfun_store" != "$fixed_store_path" ] && [ ! -z $fixed_store_path ]; then
-		dbus set mfun_store="$fixed_store_path"
-	fi
-
+# 重启自启其它变量初始化
+mfun_enable=$(dbus get mfun_enable)
+if [ "$mfun_enable" == "1" ] && [ ! -n "$(pidof mfun)" ]; then
+	mfun_watch=$(dbus get mfun_watch)
+	mfun_port=$(dbus get mfun_port)
+	mfun_open=$(dbus get mfun_open)
+	mfun_tmp=$(dbus get mfun_tmp)
 	# 开启 MFUN
-	start_mfun
+	start_mfun | tee -a $LOG_FILE
 	echo XU6J03M6 | tee -a $LOG_FILE
 fi
