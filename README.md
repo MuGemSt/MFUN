@@ -3,7 +3,7 @@
 [![GitHub release](https://img.shields.io/github/release/MuGemSt/MFUN.svg)](https://github.com/MuGemSt/MFUN/releases/latest)
 
 The MFUN plugin on Merlin, **my version supports intranet tunneling**:
-![](https://foruda.gitee.com/images/1731769083409773152/56dd4c9e_14243051.png)
+![](https://foruda.gitee.com/images/1732332422663431272/c29bc93a_14243051.png)
 
 ## Environment
 Install [7-zip](https://www.7-zip.org/download.html) and add it to environment variables, install Python 3.9+ on Windows 10
